@@ -3,6 +3,7 @@ import { privateProcedure, publicProcedure, router } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
 import { z } from "zod";
+import { Input } from "@/components/ui/input";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -37,6 +38,23 @@ export const appRouter = router({
       },
     });
   }),
+  getFileUploadStatus: privateProcedure
+    .input(z.object({ fileId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const file = await db.file.findFirst({
+        where: {
+          id: input.fileId,
+          userId: ctx.userId,
+        },
+      });
+
+      if (!file)
+        return {
+          status: "PENDING" as const,
+        };
+
+      return { status: file.uploadStatus };
+    }),
   getFile: privateProcedure
     .input(z.object({ key: z.string() }))
     .mutation(async ({ ctx, input }) => {
