@@ -25,7 +25,7 @@ const ChatInput = ({ isDisabled }: ChatInputProps) => {
                 aria-label="send message"
               >
                 {" "}
-                <Send />{" "}
+                <Send className="h-4 w-4 " />{" "}
               </Button>
             </div>
           </div>
