@@ -28,6 +28,7 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
+  console.log(file, "data");
   if (!file) return new Response("Not found", { status: 404 });
 
   await db.message.create({
@@ -44,16 +45,14 @@ export const POST = async (req: NextRequest) => {
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
-  const pineconeIndex = pinecone.Index("quill").namespace(userId);
+  const pineconeIndex = pinecone.Index("quill");
 
   const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
     pineconeIndex,
   });
 
   // TODO: paid users could get higher top K
-  const results = await vectorStore.similaritySearch(message, 4, {
-    "file.id": fileId,
-  });
+  const results = await vectorStore.similaritySearch(message, 4);
 
   const prevMessages = await db.message.findMany({
     where: {
