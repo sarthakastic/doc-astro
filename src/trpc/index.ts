@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { INFINITE_QUERY_LIMIT } from "@/config/infinite-query";
+import { absoluteUrl } from "@/lib/utils";
+import { getUserSubscriptionPlan } from "@/lib/stripe";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -38,6 +40,26 @@ export const appRouter = router({
         userId,
       },
     });
+  }),
+  createStripeSession: privateProcedure.mutation(async ({ ctx }) => {
+    const { userId } = ctx;
+
+    const billingUrl = absoluteUrl("dashboard/billing");
+
+    if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+    const dbUser = await db.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!dbUser) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+    const subscriptionPlan = await getUserSubscriptionPlan();
+
+    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
+    }
   }),
   getFileMessages: privateProcedure
     .input(
